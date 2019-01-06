@@ -20,6 +20,7 @@ class Repl:
 
 
     def next(self):
+        self.update_banner()
         line = self.get_input()
         if line is None: return
         if len(line.strip()) == 0: return

@@ -47,6 +47,7 @@ init_state = {
         'debug':False,
         'communicate': [],
         'verbose_exceptions':False,
+        'update':False
 }
 
 # initialize any directories needed
@@ -95,6 +96,7 @@ def start_repl():
     # alt. could replace this with a 'communicate' code that tells repl to run its full self.code block
     the_repl = repl.Repl(state)
     the_repl.run_code(prelude)
+    the_repl.state.prettycwd = pretty_path(os.getcwd())
     the_repl.update_banner()
     state = the_repl.get_state()
     # the main outermost loop
@@ -104,6 +106,10 @@ def start_repl():
             the_repl.next() # run repl, this will update Repl internal state
             state = the_repl.get_state() #extract state to be fed back in
             state = handle_communication(state)
+            
+            if state.update:
+                state.prettycwd = pretty_path(os.getcwd())
+
         except Exception as e:
             print(u.format_exception(e,u.src_path,verbose=state.verbose_exceptions))
 
@@ -122,7 +128,7 @@ class ReplState:
         self.debug=value_dict["debug"]
         self.communicate=value_dict["communicate"] # messages to/from main.py
         self.verbose_exceptions=value_dict['verbose_exceptions']
-
+        self.update=value_dict['update']
 
 try:
     if len(sys.argv) > 1:

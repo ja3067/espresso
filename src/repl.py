@@ -13,19 +13,23 @@ from util import die,warn,mk_blue,mk_red,mk_yellow,mk_cyan,mk_bold,mk_gray,mk_gr
 
 class Repl:
     def __init__(self,state):
-        self.state=state
+        self.state = state
 
     def get_state(self):
         return self.state
 
-
     def next(self):
-        self.update_banner()
+        if self.state.update:
+            self.update_banner()
+            self.state.update = False
+
         line = self.get_input()
         if line is None: return
-        if len(line.strip()) == 0: return
+
+        stripped = line.strip()
+        if len(stripped) == 0: return
         # for convenience, 'ls' or 'cd [anything]' will change the mode to speedy
-        if line.strip() == 'ls' or line.strip()[:3] == 'cd ':
+        if stripped == 'ls' or stripped[:3] == 'cd ':
             self.state.mode = 'speedy'
             self.update_banner()
 
@@ -35,6 +39,9 @@ class Repl:
 
         new_code = self.gen_code(line)
         self.run_code(new_code)
+
+        if 'cd' in stripped or 'chdir' in stripped:
+            self.state.update = True
 
     # handles ! commands and returns 'False' if none were detected
     # (indicating the line should be parsed normally)
@@ -71,13 +78,12 @@ class Repl:
         return False
 
     def update_banner(self):
-        prettycwd = pretty_path(os.getcwd())
         if self.state.mode == 'normal':
-            banner_txt = "es:"+prettycwd+" $ "
+            banner_txt = "es:" + self.state.prettycwd + " $ "
             self.state.banner_uncoloredlen = len(banner_txt)
             self.state.banner = mk_green(banner_txt)
         if self.state.mode == 'speedy':
-            banner_txt = "es:"+prettycwd+" $ %"
+            banner_txt = "es:" + self.state.prettycwd + " $ %"
             self.state.banner_uncoloredlen = len(banner_txt)
             self.state.banner = mk_purple(banner_txt)
 
